@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    table,
+    th,
+    td {
+      border: 1px solid rgb(124, 124, 124);
+    }
+
+    html {
+      background-color: honeydew;
+    }
+  </style>
+  <body>
+    <h2>Log In Program</h2>
+    <p>Input accounts.txt File</p>
+    <input type="file" name="inputFile" id="inputFile" />
+    <br />
+    <pre>
+================================================================================================
+	
+		Enter Login Credentials
+	
+		<input id="box_User" type="var" name="username">
+		<input id="box_Pass" type="password">  <input type = "button" onclick = "LoginUser()" value = " Log In " />
+		<br>
+
+		<input type = "button" onclick = "RegisterAcct()" value = " Register " />	<input type = "button" onclick = "ViewAccounts()" value = " View Accounts " />	
+
+</pre>
+
+    <br />
+    <p id="result"></p>
+    <p id="ValidateResult"></p>
+    <p id="ViewContents"></p>
+
+    <pre>
+=====================================================================================================
+</pre
+    >
+
+    <p>Save Registration and/or Exit application</p>
+
+    <input type="button" onclick="SaveUsersToFile()" value=" Save File " />
+    <input type="button" onclick="CloseWindow()" value=" Exit " />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://cdn.rawgit.com/eligrey/FileSaver.js/5ed507ef8aa53d8ecfea96d96bc7214cd2476fd2/FileSaver.min.js"></script>
+
+    <script type="text/javascript">
+      let fileContent
+      let usernameArr = []
+      let passwordArr = []
+      let AccountsData = ''
+      let i
+
+      // The following function runs after the user activates the button 'inputFile' and chooses the file
+      document
+        .getElementById('inputFile')
+        .addEventListener('change', function () {
+          let file = new FileReader()
+          file.onload = () => {
+            // Replace all linefeed with space
+            fileContent = file.result.replace(/\r\n/gi, ' ')
+
+            /* split the file data into arrays elements */
+            const myStrings = fileContent.split(' ')
+
+            /* Allocate myStrings array elements to the Username and Password elements */
+
+            for (i = 0; i < myStrings.length; i++) {
+              if (i % 2 == 0) {
+                usernameArr.push(myStrings[i])
+                passwordArr.push(myStrings[i + 1])
+              }
+            }
+          }
+          file.readAsText(this.files[0])
+        })
+
+      // This function closes the window when the user clicks 'exit'
+      function CloseWindow() {
+        setTimeout(function () {
+          window.close()
+        }, 2000)
+      }
+
+      // the following functions runs after the user clicks on the button 'Save Accounts to File'
+      async function SaveUsersToFile() {
+        UserData = ''
+        for (i = 0; i < usernameArr.length; i++) {
+          if (i == usernameArr.length - 1) {
+            UserData = UserData + usernameArr[i] + ' ' + passwordArr[i]
+          } else {
+            UserData = UserData + usernameArr[i] + ' ' + passwordArr[i] + '\r\n'
+          }
+        }
+
+        // blob data type
+        var myBlob = new Blob([UserData], { type: 'text/plain' })
+
+        // file handler and file stream
+        const fileHandle = await window.showSaveFilePicker({
+          types: [
+            {
+              description: 'Text file',
+              accept: { 'text/plain': ['.txt'] }
+            }
+          ]
+        })
+        const fileStream = await fileHandle.createWritable()
+
+        // write file
+        await fileStream.write(myBlob)
+        await fileStream.close()
+      }
+
+      // function for button selection View accounts
+      function ViewAccounts() {
+        //initialise page
+        document.getElementById('ValidateResult').innerHTML = ' '
+        document.getElementById('result').innerHTML = ' '
+        document.getElementById('ViewContents').innerHTML = ' '
+        // combine all array elements of Username and Password to string variable after verify admin
+        let adminPass = prompt('Enter Admin Password: ')
+
+        if (adminPass != 'Admin') {
+          //prompt for new username
+          document.getElementById('ValidateResult').innerHTML =
+            'Incorrect Password!'
+        } else {
+          UserData = '<table>'
+          UserData += '<tr><th>Username</th><th>Password</th>'
+          for (i = 0; i < usernameArr.length; i++) {
+            UserData += '<tr>'
+            UserData +=
+              '<td>' +
+              usernameArr[i] +
+              '</td>' +
+              '<td>' +
+              passwordArr[i] +
+              '</td>'
+          }
+          UserData += '</tr>' + '</table>'
+
+          document.getElementById('ViewContents').innerHTML = UserData
+        }
+      }
+
+      // function for button selection Login
+      function LoginUser() {
+        //initialise page
+        document.getElementById('ValidateResult').innerHTML = ' '
+        document.getElementById('result').innerHTML = ' '
+        document.getElementById('ViewContents').innerHTML = ' '
+
+        //inputUsername = prompt("Enter Username");
+        var inputUsername = document.getElementById('box_User').value
+        let indexUsername = usernameArr.indexOf(inputUsername)
+        if (indexUsername == -1) {
+          //
+          document.getElementById('ValidateResult').innerHTML =
+            'User Not Found!'
+        } else {
+          //inputPassword = prompt("Enter Password");
+          var inputPassword = document.getElementById('box_Pass').value
+          if (passwordArr[indexUsername] == inputPassword) {
+            document.getElementById('ValidateResult').innerHTML =
+              'Login Successful!'
+          } else {
+            document.getElementById('ValidateResult').innerHTML =
+              'Incorrect Password!'
+          }
+        }
+      }
+
+      // function for button Register
+      function RegisterAcct() {
+        //initialise page
+        document.getElementById('ValidateResult').innerHTML = ' '
+        document.getElementById('result').innerHTML = ' '
+        document.getElementById('ViewContents').innerHTML = ' '
+
+        let userPassword = ''
+        let userUsername = prompt('Enter User Name :')
+        let indexUsername = usernameArr.indexOf(userUsername)
+        if (indexUsername != -1) {
+          //prompt for new username
+          document.getElementById('ValidateResult').innerHTML =
+            'User Already Exists!'
+        } else {
+          // prompt for custom or generated password
+          let customGeneratedPassword = prompt(
+            'Enter (C)ustom or (G)enerated password'
+          ).toUpperCase()
+          if (customGeneratedPassword == 'C') {
+            // custom
+            userPassword = prompt('Enter your password :')
+          } else {
+            //generated using GeneratedPassword() function
+            userPassword = GeneratedPassword()
+          }
+          //Print Username and password
+          document.getElementById('ValidateResult').innerHTML =
+            'Username: ' + userUsername + '<br>Password: ' + userPassword
+        }
+
+        // Add new user to existing users
+        usernameArr.push(userUsername)
+        passwordArr.push(userPassword)
+      }
+
+      // function for generate password
+      function GeneratedPassword() {
+        let generatedPass
+        const alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        const numbers = '0123456789'
+        const symbols = '!@#$%^&*_-+='
+        let lengthPassword
+        let includeNumbers
+        let includeSymbols
+
+        lengthPassword = parseInt(prompt('Enter length password to generate'))
+        includeNumbers = prompt('Include Numbers (Y)es or (N)o: ').toUpperCase()
+        includeSymbols = prompt('Include Symbols (Y)es or (N)o: ').toUpperCase()
+
+        // include numbers and or symbols
+        let characters = alpha
+        if (includeNumbers == 'Y') {
+          if (includeSymbols == 'Y') {
+            characters = characters + numbers + symbols
+          } else {
+            characters = characters + numbers
+          }
+        } else includeSymbols == 'Y'
+        {
+          characters = characters + symbols
+        }
+
+        generatedPass = RunGeneratePassword(lengthPassword, characters)
+        return generatedPass
+      }
+
+      function RunGeneratePassword(length, characters) {
+        let password = ''
+        for (let i = 0; i < length; i++) {
+          password += characters.charAt(
+            Math.floor(Math.random() * characters.length)
+          )
+        }
+        return password
+      }
+    </script>
+  </body>
+</html>
